@@ -1,12 +1,13 @@
 package world.bentobox.acidisland.listeners;
 
-import org.bukkit.Bukkit;
+import java.util.Objects;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockFormEvent;
 
 import world.bentobox.acidisland.AcidIsland;
 import world.bentobox.bentobox.util.Util;
@@ -26,20 +27,29 @@ public class LavaCheck implements Listener {
      *
      * @param e - event
      */
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onCleanstoneGen(BlockFromToEvent e) {
-        if (!e.getToBlock().getType().equals(Material.WATER)
-                || !addon.getOverWorld().equals(Util.getWorld(e.getToBlock().getWorld()))
-                || addon.getSettings().getAcidDamage() <= 0) {
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onCleanStoneGen(BlockFormEvent e) {
+        World world = Util.getWorld(e.getBlock().getWorld());
+        int seaHeight;
+        if (addon.getOverWorld().equals(world)) {
+            seaHeight = addon.getSettings().getSeaHeight();
+        } else if (Objects.equals(addon.getNetherWorld(), world)) {
+            seaHeight = addon.getSettings().getNetherSeaHeight();
+        } else if (Objects.equals(addon.getEndWorld(), world)) {
+            seaHeight = addon.getSettings().getEndSeaHeight();
+        } else {
             return;
         }
-        Material prev = e.getToBlock().getType();
-        Bukkit.getScheduler().runTask(addon.getPlugin(), () -> {
-            if (e.getToBlock().getType().equals(Material.STONE)) {
-                e.getToBlock().setType(prev);
-                e.getToBlock().getWorld().playSound(e.getToBlock().getLocation(), Sound.ENTITY_CREEPER_PRIMED, 1F, 2F);
-            }
-        });
+        if (!e.getBlock().getType().equals(Material.WATER)
+            || !addon.getOverWorld().equals(world)
+            || addon.getSettings().getAcidDamage() <= 0
+            || e.getBlock().getLocation().getY() > seaHeight) {
+            return;
+        }
+        if (e.getNewState().getType().equals(Material.STONE)) {
+            e.setCancelled(true);
+            e.getBlock().getWorld().playSound(e.getBlock().getLocation(), Sound.ENTITY_CREEPER_PRIMED, 1F, 2F);
+        }
     }
 
 

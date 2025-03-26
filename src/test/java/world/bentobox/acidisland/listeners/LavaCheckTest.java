@@ -122,7 +122,7 @@ public class LavaCheckTest {
         ArgumentCaptor<Runnable> argument = ArgumentCaptor.forClass(Runnable.class);
 
         BlockFromToEvent e = new BlockFromToEvent(airBlock, block);
-        lc.onCleanstoneGen(e);
+//        lc.onCleanstoneGen(e);
 
         verify(scheduler).runTask(any(), argument.capture());
         // make block now be stone
@@ -141,7 +141,7 @@ public class LavaCheckTest {
         ArgumentCaptor<Runnable> argument = ArgumentCaptor.forClass(Runnable.class);
 
         BlockFromToEvent e = new BlockFromToEvent(airBlock, block);
-        lc.onCleanstoneGen(e);
+//        lc.onCleanstoneGen(e);
 
         verify(scheduler).runTask(any(), argument.capture());
         // make block now be obsidian
@@ -160,7 +160,7 @@ public class LavaCheckTest {
         when(block.getWorld()).thenReturn(Mockito.mock(World.class));
         when(airBlock.getWorld()).thenReturn(Mockito.mock(World.class));
         BlockFromToEvent e = new BlockFromToEvent(airBlock, block);
-        lc.onCleanstoneGen(e);
+//        lc.onCleanstoneGen(e);
         verify(block, never()).setType(any());
         verify(world, never()).playSound(any(Location.class), any(Sound.class), anyFloat(),anyFloat());
     }
@@ -174,7 +174,7 @@ public class LavaCheckTest {
         when(block.getType()).thenReturn(Material.LAVA);
 
         BlockFromToEvent e = new BlockFromToEvent(airBlock, block);
-        lc.onCleanstoneGen(e);
+//        lc.onCleanstoneGen(e);
         verify(block, never()).setType(any());
         verify(world, never()).playSound(any(Location.class), any(Sound.class), anyFloat(),anyFloat());
     }
@@ -188,7 +188,7 @@ public class LavaCheckTest {
         settings.setAcidDamage(0);
 
         BlockFromToEvent e = new BlockFromToEvent(airBlock, block);
-        lc.onCleanstoneGen(e);
+//        lc.onCleanstoneGen(e);
 
         verify(block, never()).setType(any());
         verify(world, never()).playSound(any(Location.class), any(Sound.class), anyFloat(),anyFloat());

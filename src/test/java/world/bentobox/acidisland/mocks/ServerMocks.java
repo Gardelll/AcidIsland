@@ -66,7 +66,7 @@ public final class ServerMocks {
                     doReturn(key).when(keyed).getKey();
                     return keyed;
                 });
-            }).when(registry).get(notNull());
+            }).when(registry).get((NamespacedKey) notNull());
             return registry;
         })).when(mock).getRegistry(notNull());
 

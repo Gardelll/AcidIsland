@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.WorldCreator;
-import org.bukkit.WorldType;
 import org.bukkit.entity.SpawnCategory;
 import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.ChunkGenerator;
@@ -16,6 +15,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import world.bentobox.acidisland.commands.IslandAboutCommand;
 import world.bentobox.acidisland.listeners.AcidEffect;
 import world.bentobox.acidisland.listeners.LavaCheck;
+import world.bentobox.acidisland.listeners.WaterPanic;
 import world.bentobox.acidisland.world.AcidBiomeProvider;
 import world.bentobox.acidisland.world.AcidTask;
 import world.bentobox.acidisland.world.ChunkGeneratorWorld;
@@ -41,7 +41,7 @@ public class AcidIsland extends GameModeAddon {
 
     private static final String NETHER = "_nether";
     private static final String THE_END = "_the_end";
-    
+
     /**
      * This addon uses the new chunk generation API for the sea bottom
      */
@@ -103,6 +103,7 @@ public class AcidIsland extends GameModeAddon {
         // Acid Effects
         registerListener(new AcidEffect(this));
         registerListener(new LavaCheck(this));
+        registerListener(new WaterPanic(this));
         // Burn everything
         acidTask = new AcidTask(this);
     }

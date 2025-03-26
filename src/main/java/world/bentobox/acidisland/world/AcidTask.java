@@ -5,12 +5,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -39,6 +43,7 @@ public class AcidTask {
         i.add(EntityType.DROWNED);
         i.add(EntityType.GUARDIAN);
         i.add(EntityType.ELDER_GUARDIAN);
+        i.add(EntityType.SNOW_GOLEM);
         Enums.getIfPresent(EntityType.class, "AXOLOTL").toJavaUtil().ifPresent(i::add);
         IMMUNE = Collections.unmodifiableList(i);
     }
@@ -61,10 +66,9 @@ public class AcidTask {
                 int x = e.getLocation().getBlockX() >> 4;
                 int z = e.getLocation().getBlockZ() >> 4;
                 if (e.getWorld().isChunkLoaded(x,z)) {
-                    if (e.getLocation().getBlock().getType().equals(Material.WATER)) {
+                    if (isInWater(e)) {
                         if ((e instanceof Monster || e instanceof MagmaCube) && addon.getSettings().getAcidDamageMonster() > 0D) {
                             burnList.put(e, (long)addon.getSettings().getAcidDamageMonster());
-
                         } else if ((e instanceof Animals) && addon.getSettings().getAcidDamageAnimal() > 0D
                                 && (!e.getType().equals(EntityType.CHICKEN) || addon.getSettings().isAcidDamageChickens())) {
                             burnList.put(e, (long)addon.getSettings().getAcidDamageAnimal());
@@ -96,7 +100,7 @@ public class AcidTask {
             }
         } else if (addon.getSettings().getAcidDestroyItemTime() > 0 && e instanceof Item){
             // Item
-            if (e.getLocation().getBlock().getType().equals(Material.WATER)) {
+            if (isInWater(e)) {
                 itemsInWater.putIfAbsent(e, damage + addon.getSettings().getAcidDestroyItemTime() * 1000);
                 if (System.currentTimeMillis() > itemsInWater.get(e)) {
                     e.getWorld().playSound(e.getLocation(), Sound.ENTITY_CREEPER_PRIMED, 3F, 3F);
@@ -145,5 +149,16 @@ public class AcidTask {
      */
     void setItemsInWater(Map<Entity, Long> itemsInWater) {
         this.itemsInWater = itemsInWater;
+    }
+
+    private boolean isInWater(Entity entity) {
+        BlockState blockState = entity.getLocation().getBlock().getState();
+        Material type = blockState.getType();
+        if ((entity.isInWater() || type == Material.WATER_CAULDRON) && !entity.isInBubbleColumn()) {
+            return true;
+        }
+
+        return (type.equals(Material.SNOW) || type.equals(Material.POWDER_SNOW) || type.equals(Material.POWDER_SNOW_CAULDRON))
+            && addon.getSettings().isAcidDamageSnow();
     }
 }

@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import java.util.UUID;
+import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -43,6 +45,8 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -623,8 +627,33 @@ public class AcidEffectTest {
         }
 
         @Override
+        public @Nullable AttributeModifier getModifier(@NotNull Key key) {
+            return null;
+        }
+
+        @Override
+        public void removeModifier(@NotNull Key key) {
+
+        }
+
+        @Override
+        public @Nullable AttributeModifier getModifier(@NotNull UUID uuid) {
+            return null;
+        }
+
+        @Override
+        public void removeModifier(@NotNull UUID uuid) {
+
+        }
+
+        @Override
         public void addModifier(AttributeModifier modifier) {
             // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void addTransientModifier(@NotNull AttributeModifier modifier) {
 
         }
 

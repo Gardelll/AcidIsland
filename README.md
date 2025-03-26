@@ -10,6 +10,14 @@ AcidIsland™
 # Introduction
 AcidIsland™ add-on for BentoBox, so to run an AcidIsland™ game, you must have BentoBox installed. Docs can be found at [https://docs.bentobox.world](https://docs.bentobox.world).
 
+## Modify Description
+
+This fork introduces a feature where creatures exhibit panic behavior when touching water and will actively avoid entering it. It also includes several minor improvements.
+
++ Creatures will attempt to escape from water and avoid entering it entirely. (This functionality requires accessing NMS packages and involves significant code modifications.)
++ Both creatures and players will now take damage from waterlogged blocks and water/snow-filled cauldrons.
++ Lava will no longer flow into water below sea level, preventing the water from being converted into stone as it does in the vanilla game.
++ Please note that this fork relies on extensive code modifications and is not guaranteed to be compatible with future versions of the game. Therefore, a pull request is not currently planned.
 
 ## The Story
 You're on an island, in a sea of acid! If you like Skyblock, try the AcidIsland™ game mode for a new challenge!

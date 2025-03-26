@@ -5,13 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World.Environment;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -226,7 +229,7 @@ public class AcidEffect implements Listener {
                 event.getPotionEffects().stream().filter(EFFECTS::contains).forEach(t -> player
                         .addPotionEffect(new PotionEffect(t, addon.getSettings().getAcidEffectDuation() * 20, 1)));
                 // Apply damage if there is any
-                if (event.getTotalDamage() > 0D) {               
+                if (event.getTotalDamage() > 0D) {
                     EntityDamageByAcidEvent e = new EntityDamageByAcidEvent(player, event.getTotalDamage(), Acid.WATER);
                     // Fire event
                     Bukkit.getPluginManager().callEvent(e);
@@ -252,21 +255,13 @@ public class AcidEffect implements Listener {
                 || (addon.getSettings().isHelmetProtection() && (player.getInventory().getHelmet() != null
                 && player.getInventory().getHelmet().getType().name().contains("HELMET")))
                 || (!addon.getSettings().isAcidDamageSnow() && player.getLocation().getBlock().getTemperature() < 0.1) // snow falls
-                || player.getLocation().getBlock().getHumidity() == 0 // dry
+                || !player.isInRain() // dry
                 || (player.getActivePotionEffects().stream().map(PotionEffect::getType)
                         .anyMatch(IMMUNE_EFFECTS::contains))
                 // Protect visitors
                 || (addon.getPlugin().getIWM().getIvSettings(player.getWorld()).contains(DamageCause.CUSTOM.name())
                         && !addon.getIslands().userIsOnIsland(player.getWorld(), User.getInstance(player)))) {
             return true;
-        }
-        // Check if all air above player
-        for (int y = player.getLocation().getBlockY() + 2; y < player.getLocation().getWorld().getMaxHeight(); y++) {
-            if (!player.getLocation().getWorld()
-                    .getBlockAt(player.getLocation().getBlockX(), y, player.getLocation().getBlockZ()).getType()
-                    .equals(Material.AIR)) {
-                return true;
-            }
         }
         return false;
     }
@@ -284,13 +279,33 @@ public class AcidEffect implements Listener {
                         && !addon.getIslands().userIsOnIsland(player.getWorld(), User.getInstance(player)))) {
             return true;
         }
-        // Not in liquid or on snow
-        if (!player.getLocation().getBlock().getType().equals(Material.WATER)
-                && !player.getLocation().getBlock().getType().equals(Material.BUBBLE_COLUMN)
-                && (!player.getLocation().getBlock().getType().equals(Material.SNOW)
-                        || !addon.getSettings().isAcidDamageSnow())
-                && !player.getLocation().getBlock().getRelative(BlockFace.UP).getType().equals(Material.WATER)) {
+
+        BlockState playerInBlockState = player.getLocation().getBlock().getState();
+        Material playerInBlockType = playerInBlockState.getType();
+        // in bubble column
+        if (player.isInBubbleColumn()) {
             return true;
+        }
+        // not in water
+        if (!player.isInWater() && !Material.WATER_CAULDRON.equals(playerInBlockType)) {
+            return true;
+        }
+        BlockData blockData = playerInBlockState.getBlockData();
+        // is waterLoggable but not waterLogged
+//        if ((blockData instanceof Waterlogged) && !((Waterlogged) blockData).isWaterlogged()) {
+//            return true;
+//        }
+        // in snow but acid.damage.snow is disabled
+        if ((playerInBlockType.equals(Material.SNOW) || playerInBlockType.equals(Material.POWDER_SNOW) || playerInBlockType.equals(Material.POWDER_SNOW_CAULDRON))
+                && !addon.getSettings().isAcidDamageSnow()) {
+            return true;
+        }
+        // in cauldron but level is zero
+        if (playerInBlockType.equals(Material.WATER_CAULDRON) || playerInBlockType.equals(Material.POWDER_SNOW_CAULDRON)) {
+            Levelled levelled = (Levelled) blockData;
+            if (levelled.getLevel() == 0) {
+                return true;
+            }
         }
         // Check if player is on a boat
         if (player.getVehicle() != null && (player.getVehicle().getType().getKey().getKey().contains("boat")
