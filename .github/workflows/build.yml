@@ -1,45 +1,40 @@
-name: Build
+name: Build and Release Maven Project
 on:
   push:
     branches:
-      - develop
-  pull_request:
-    types: [opened, synchronize, reopened]
+      - feat-water-panic
 jobs:
   build:
-    name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'adopt'
+          distribution: 'temurin'
           java-version: '21'
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v3
+          cache: 'maven'
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-      - name: Cache Maven packages
-        uses: actions/cache@v3
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Build with Maven
+        run: mvn clean install -DskipTests
+      - name: Get Current Date for Release Tag
+        id: get_date
+        run: echo "date=$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: Build and analyze
+          tag_name: pre-release-${{ steps.get_date.outputs.date }}
+          name: Pre-Release ${{ steps.get_date.outputs.date }}
+          draft: false
+          prerelease: true
+          files: target/*.jar
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=BentoBoxWorld_AcidIsland
-      - run: mvn --batch-mode clean org.jacoco:jacoco-maven-plugin:prepare-agent install
-      - run: mkdir staging && cp target/*.jar staging
-      - name: Save artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: Package
-          path: staging
-        
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
