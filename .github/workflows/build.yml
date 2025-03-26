@@ -22,6 +22,18 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - name: Setup Paper Server Jar
+        run: |
+          apt-get update && apt-get install -yqq jq
+          mkdir lib && mkdir server && pushd server
+          PROJECT="paper"
+          MINECRAFT_VERSION="1.21.4"
+          LATEST_BUILD=$(curl -s https://api.papermc.io/v2/projects/${PROJECT}/versions/${MINECRAFT_VERSION}/builds | jq -r '.builds | map(select(.channel == "default") | .build) | .[-1]')
+          JAR_NAME=${PROJECT}-${MINECRAFT_VERSION}-${LATEST_BUILD}.jar
+          PAPERMC_URL="https://api.papermc.io/v2/projects/${PROJECT}/versions/${MINECRAFT_VERSION}/builds/${LATEST_BUILD}/downloads/${JAR_NAME}"
+          wget -N "$PAPERMC_URL"
+          java -jar "$JAR_NAME" nogui || true
+          popd && cp server/versions/1.21.4/paper-1.21.4.jar lib/
       - name: Build with Maven
         run: mvn clean install -DskipTests
       - name: Get Current Date for Release Tag
